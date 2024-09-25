@@ -1,0 +1,61 @@
+use crate::{
+    tokens::{Token, LexicalError},
+    ast,
+};
+
+use lalrpop_util::ErrorRecovery;
+
+grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, Token, LexicalError>>);
+
+extern {
+    type Location = usize;
+    type Error = LexicalError;
+
+    enum Token {
+        "var" => Token::KeywordVar,
+        "print" => Token::KeywordPrint,
+        "identifier" => Token::Identifier(<String>),
+        "int" => Token::Integer(<i64>),
+        "(" => Token::LParen,
+        ")" => Token::RParen,
+        "=" => Token::Assign,
+        ";" => Token::Semicolon,
+        "+" => Token::OperatorAdd,
+        "-" => Token::OperatorSub,
+        "*" => Token::OperatorMul,
+        "/" => Token::OperatorDiv,
+    }
+}
+
+pub Script: Vec<ast::Statement> = {
+    <Statement*>,
+}
+
+pub Statement: ast::Statement = {
+    "var" <name:"identifier"> "=" <value:Expression> ";" => ast::Statement::Variable { <> },
+    "print" <value:Expression> ";" => ast::Statement::Print { <> },
+    <!> ";" => { errors.push(<>); ast::Statement::Error },
+}
+
+pub Expression: Box<ast::Expression> = {
+    #[precedence(level="1")]
+    Term,
+
+    #[precedence(level="2")]
+    #[assoc(side="left")]
+    <lhs:Expression> "*" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Mul, rhs }),
+    <lhs:Expression> "/" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Div, rhs }),
+
+    #[precedence(level="3")]
+    #[assoc(side="left")]
+    <lhs:Expression> "+" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Add, rhs }),
+    <lhs:Expression> "-" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Sub, rhs }),
+
+    <!> => { errors.push(<>); Box::new(ast::Expression::Error) },
+}
+
+pub Term: Box<ast::Expression> = {
+    "int" => Box::new(ast::Expression::Integer(<>)),
+    "identifier" => Box::new(ast::Expression::Variable(<>)),
+    "(" <Expression> ")"
+}

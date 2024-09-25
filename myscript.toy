@@ -1,0 +1,8 @@
+var a = 42;
+var b = 23 + a;
+
+print a + b;
+var x = 1287129;
+
+# a comment
+print (a - b) * x;
