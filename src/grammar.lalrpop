@@ -43,13 +43,13 @@ pub Expression: Box<ast::Expression> = {
 
     #[precedence(level="2")]
     #[assoc(side="left")]
-    <lhs:Expression> "*" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Mul, rhs }),
-    <lhs:Expression> "/" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Div, rhs }),
+    <lhs:Expression> "*" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Mul, <> }),
+    <lhs:Expression> "/" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Div, <> }),
 
     #[precedence(level="3")]
     #[assoc(side="left")]
-    <lhs:Expression> "+" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Add, rhs }),
-    <lhs:Expression> "-" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation {lhs, operator: ast::Operator::Sub, rhs }),
+    <lhs:Expression> "+" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Add, <> }),
+    <lhs:Expression> "-" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Sub, <> }),
 
     <!> => { errors.push(<>); Box::new(ast::Expression::Error) },
 }
