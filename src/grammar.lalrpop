@@ -43,16 +43,24 @@ pub Expression: Box<ast::Expression> = {
 
     #[precedence(level="2")]
     #[assoc(side="left")]
-    <lhs:Expression> "*" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Mul, <> }),
-    <lhs:Expression> "/" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Div, <> }),
+    <lhs:Expression> <operator:MulDiv> <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { <> }),
 
     #[precedence(level="3")]
     #[assoc(side="left")]
-    <lhs:Expression> "+" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Add, <> }),
-    <lhs:Expression> "-" <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { operator: ast::Operator::Sub, <> }),
+    <lhs:Expression> <operator:AddSub> <rhs:Expression> => Box::new(ast::Expression::BinaryOperation { <> }),
 
     <!> => { errors.push(<>); Box::new(ast::Expression::Error) },
 }
+
+MulDiv: ast::Operator = {
+    "*" => ast::Operator::Mul,
+    "/" => ast::Operator::Div,
+};
+
+AddSub: ast::Operator = {
+    "+" => ast::Operator::Add,
+    "-" => ast::Operator::Sub,
+};
 
 pub Term: Box<ast::Expression> = {
     "int" => Box::new(ast::Expression::Integer(<>)),
