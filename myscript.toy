@@ -2,7 +2,7 @@ var a = 42;
 var b = 23 + a;
 
 print a + b;
-var x = 1287129;
+var x = 1287129423948723948723948729;
 var a = -1;
 
 # a comment

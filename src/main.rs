@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use ariadne::{Label, Source};
 use lalrpop_util::lalrpop_mod;
 use lexer::Lexer;
@@ -14,40 +16,39 @@ fn main() {
     let lexer = Lexer::new(&source_code);
     let parser = grammar::ScriptParser::new();
 
-    let mut errors = Vec::new();
-
-    let ast = parser.parse(&mut errors, lexer);
-
-    let any_errors = !errors.is_empty();
-
-    for error in errors {
-        error_report(error.error, &source_code);
-    }
+    let ast = parser.parse(lexer);
 
     match ast {
         Ok(ast) => {
-            if !any_errors {
-                if let Err(e) = exec::execute(ast) {
+            if let Err(e) = exec::execute(ast) {
+                if let Some(err_message) = e.message() {
                     let mut error_report =
                         ariadne::Report::build(ariadne::ReportKind::Error, "myscript.toy", 0);
                     error_report = error_report.with_label(
                         Label::new(("myscript.toy", e.location().as_range()))
-                            .with_message(format!("{e}")),
+                            .with_message(err_message),
                     );
 
                     error_report
                         .finish()
                         .eprint(("myscript.toy", Source::from(source_code)))
                         .unwrap();
+                } else if let Some(error_recovery) = e.error_recovery() {
+                    error_report(
+                        error_recovery.error,
+                        Some(e.location().as_range()),
+                        &source_code,
+                    );
                 }
             }
         }
-        Err(ast_err) => error_report(ast_err, &source_code),
+        Err(ast_err) => error_report(ast_err, None, &source_code),
     }
 }
 
 fn error_report(
     error: lalrpop_util::ParseError<usize, tokens::Token, tokens::LexicalError>,
+    err_location: Option<Range<usize>>,
     source_code: &str,
 ) {
     let mut error_report = ariadne::Report::build(ariadne::ReportKind::Error, "myscript.toy", 20);
@@ -55,7 +56,11 @@ fn error_report(
     match error {
         lalrpop_util::ParseError::InvalidToken { location } => {
             error_report = error_report.with_label(
-                Label::new(("myscript.toy", location..location + 1)).with_message("Invalid token"),
+                Label::new((
+                    "myscript.toy",
+                    err_location.unwrap_or(location..location + 1),
+                ))
+                .with_message("Invalid token"),
             );
         }
         lalrpop_util::ParseError::UnrecognizedEof { expected, .. } => {
@@ -72,21 +77,30 @@ fn error_report(
             expected,
         } => {
             error_report = error_report.with_label(
-                Label::new(("myscript.toy", start..end)).with_message(format!(
-                    "Unrecognised token, expected {expected}",
-                    expected = expected.join(", ")
-                )),
+                Label::new(("myscript.toy", err_location.unwrap_or(start..end))).with_message(
+                    format!(
+                        "Unrecognised token, expected {expected}",
+                        expected = expected.join(", ")
+                    ),
+                ),
             );
         }
         lalrpop_util::ParseError::ExtraToken {
             token: (start, _token, end),
         } => {
             error_report = error_report.with_label(
-                Label::new(("myscript.toy", start..end)).with_message("Unexpected extra token"),
+                Label::new(("myscript.toy", err_location.unwrap_or(start..end)))
+                    .with_message("Unexpected extra token"),
             );
         }
         lalrpop_util::ParseError::User { error } => {
-            error_report = error_report.with_message(format!("{error}"));
+            if let Some(location) = err_location {
+                error_report = error_report.with_label(
+                    Label::new(("myscript.toy", location)).with_message(format!("{error}")),
+                );
+            } else {
+                error_report = error_report.with_message(format!("{error}"));
+            }
         }
     }
 

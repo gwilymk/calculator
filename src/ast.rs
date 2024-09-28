@@ -1,5 +1,9 @@
 use std::ops::Range;
 
+use lalrpop_util::ErrorRecovery;
+
+use crate::tokens::{self, LexicalError};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Location(pub usize, pub usize);
 
@@ -24,7 +28,7 @@ pub enum StatementKind<'input> {
     Print {
         value: Box<Expression<'input>>,
     },
-    Error,
+    Error(ErrorRecovery<usize, tokens::Token<'input>, LexicalError>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -42,7 +46,7 @@ pub enum ExpressionKind<'input> {
         operator: Operator,
         rhs: Box<Expression<'input>>,
     },
-    Error,
+    Error(ErrorRecovery<usize, tokens::Token<'input>, LexicalError>),
 }
 
 #[derive(Clone, Debug, PartialEq)]

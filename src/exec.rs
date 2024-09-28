@@ -1,39 +1,55 @@
-use std::{collections::HashMap, fmt};
+use std::collections::HashMap;
 
-use crate::ast::{Expression, ExpressionKind, Location, Operator, Statement, StatementKind};
+use lalrpop_util::ErrorRecovery;
+
+use crate::{
+    ast::{Expression, ExpressionKind, Location, Operator, Statement, StatementKind},
+    tokens::{self, LexicalError},
+};
 
 #[derive(Debug)]
-pub enum ExecutionError {
-    UnknownVariable(String, Location),
-    ExpressionError(Location),
-    StatementError(Location),
+pub enum ExecutionError<'input> {
+    UnknownVariable(&'input str, Location),
+    ExpressionError(
+        ErrorRecovery<usize, tokens::Token<'input>, LexicalError>,
+        Location,
+    ),
+    StatementError(
+        ErrorRecovery<usize, tokens::Token<'input>, LexicalError>,
+        Location,
+    ),
 }
 
-impl fmt::Display for ExecutionError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ExecutionError::UnknownVariable(v, _) => write!(f, "Unknown variable {v}"),
-            ExecutionError::ExpressionError(_) => {
-                write!(f, "Expression error (this should never happen)")
-            }
-            ExecutionError::StatementError(_) => {
-                write!(f, "Statement error (this should never happen)")
-            }
-        }
-    }
-}
-
-impl ExecutionError {
+impl<'input> ExecutionError<'input> {
     pub fn location(&self) -> Location {
         match self {
             ExecutionError::UnknownVariable(_, location)
-            | ExecutionError::ExpressionError(location)
-            | ExecutionError::StatementError(location) => *location,
+            | ExecutionError::ExpressionError(_, location)
+            | ExecutionError::StatementError(_, location) => *location,
+        }
+    }
+
+    pub fn error_recovery(
+        &self,
+    ) -> Option<ErrorRecovery<usize, tokens::Token<'input>, LexicalError>> {
+        match self {
+            ExecutionError::UnknownVariable(..) => None,
+            ExecutionError::ExpressionError(error_recovery, _)
+            | ExecutionError::StatementError(error_recovery, _) => Some(error_recovery.clone()),
+        }
+    }
+
+    pub fn message(&self) -> Option<String> {
+        match self {
+            ExecutionError::UnknownVariable(var_name, _) => {
+                Some(format!("Unknown variable {var_name}"))
+            }
+            _ => None,
         }
     }
 }
 
-pub fn execute(ast: Vec<Statement>) -> Result<(), ExecutionError> {
+pub fn execute<'input>(ast: Vec<Statement<'input>>) -> Result<(), ExecutionError<'input>> {
     let mut variables = HashMap::new();
 
     for statement in ast {
@@ -44,7 +60,9 @@ pub fn execute(ast: Vec<Statement>) -> Result<(), ExecutionError> {
             StatementKind::Print { value } => {
                 println!("{}", exec_expression(&value, &variables)?);
             }
-            StatementKind::Error => return Err(ExecutionError::StatementError(statement.location)),
+            StatementKind::Error(e) => {
+                return Err(ExecutionError::StatementError(e, statement.location))
+            }
         }
     }
 
@@ -54,13 +72,13 @@ pub fn execute(ast: Vec<Statement>) -> Result<(), ExecutionError> {
 fn exec_expression<'input>(
     expression: &Expression<'input>,
     variables: &HashMap<&'input str, i64>,
-) -> Result<i64, ExecutionError> {
+) -> Result<i64, ExecutionError<'input>> {
     match &expression.kind {
         ExpressionKind::Integer(i) => Ok(*i),
         ExpressionKind::Variable(name) => variables
             .get(name)
             .copied()
-            .ok_or_else(|| ExecutionError::UnknownVariable(name.to_string(), expression.location)),
+            .ok_or_else(|| ExecutionError::UnknownVariable(name, expression.location)),
         ExpressionKind::BinaryOperation { lhs, operator, rhs } => {
             let lhs = exec_expression(lhs, variables)?;
             let rhs = exec_expression(rhs, variables)?;
@@ -72,6 +90,9 @@ fn exec_expression<'input>(
                 Operator::Div => lhs / rhs,
             })
         }
-        ExpressionKind::Error => Err(ExecutionError::ExpressionError(expression.location)),
+        ExpressionKind::Error(e) => Err(ExecutionError::ExpressionError(
+            e.clone(),
+            expression.location,
+        )),
     }
 }

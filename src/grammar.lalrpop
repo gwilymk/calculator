@@ -3,9 +3,7 @@ use crate::{
     ast::{Expression, ExpressionKind, Statement, StatementKind, Location, Operator},
 };
 
-use lalrpop_util::ErrorRecovery;
-
-grammar<'err, 'input>(errors: &'err mut Vec<ErrorRecovery<usize, Token<'input>, LexicalError>>);
+grammar<'input>();
 
 extern {
     type Location = usize;
@@ -34,7 +32,7 @@ pub Script: Vec<Statement<'input>> = {
 pub Statement: Statement<'input> = {
     <start: @L> "var" <name:"identifier"> "=" <value:Expression> ";" <end: @R> => Statement { kind: StatementKind::Variable { name, value }, location: Location(start, end) },
     <start: @L> "print" <value:Expression> ";" <end: @R> => Statement { kind: StatementKind::Print { value }, location: Location(start, end) },
-    <start: @L> <error: !> ";" <end: @R> => { errors.push(error); Statement { kind: StatementKind::Error, location: Location(start, end) } },
+    <start: @L> <error: !> ";" <end: @R> => Statement { kind: StatementKind::Error(error), location: Location(start, end) },
 }
 
 pub Expression: Box<Expression<'input>> = {
@@ -49,7 +47,7 @@ pub Expression: Box<Expression<'input>> = {
     #[assoc(side="left")]
     <start: @L> <lhs: Expression> <operator: AddSub> <rhs: Expression> <end: @R> => Box::new(Expression { kind: ExpressionKind::BinaryOperation { lhs, operator, rhs }, location: Location(start, end) }),
 
-    <start: @L> <error: !> <end: @L> => { errors.push(error); Box::new(Expression { kind: ExpressionKind::Error, location: Location(start, end) }) },
+    <start: @L> <error: !> <end: @L> => Box::new(Expression { kind: ExpressionKind::Error(error), location: Location(start, end) }),
 }
 
 MulDiv: Operator = {
