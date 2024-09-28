@@ -3,6 +3,8 @@ use crate::{
     ast::{Expression, ExpressionKind, Statement, StatementKind, Location, Operator},
 };
 
+use lalrpop_util::{ErrorRecovery, ParseError};
+
 grammar<'input>();
 
 extern {
@@ -13,7 +15,7 @@ extern {
         "var" => Token::KeywordVar,
         "print" => Token::KeywordPrint,
         "identifier" => Token::Identifier(<&'input str>),
-        "int" => Token::Integer(<i64>),
+        "int" => Token::Integer(<&'input str>),
         "(" => Token::LParen,
         ")" => Token::RParen,
         "=" => Token::Assign,
@@ -52,8 +54,6 @@ Expression: Box<Expression<'input>> = {
     #[precedence(level="3")]
     #[assoc(side="left")]
     <start: @L> <lhs: Expression> <operator: AddSub> <rhs: Expression> <end: @R> => ExpressionKind::BinaryOperation { lhs, operator, rhs }.with_loc(Location(start, end)),
-
-    <start: @L> <error: !> <end: @R> => ExpressionKind::Error(error).with_loc(Location(start, end)),
 }
 
 MulDiv: Operator = {
@@ -67,6 +67,13 @@ AddSub: Operator = {
 };
 
 Term: ExpressionKind<'input> = {
-    <"int"> => ExpressionKind::Integer(<>),
+    <Num>,
     <"identifier"> => ExpressionKind::Variable(<>),
+    <!> => ExpressionKind::Error(<>),
 }
+
+Num: ExpressionKind<'input> =
+    <"int"> => match <>.parse::<i64>() {
+        Ok(value) => ExpressionKind::Integer(value),
+        Err(e) => ExpressionKind::Error(ErrorRecovery { error: ParseError::from(LexicalError::from(e)).into(), dropped_tokens: vec![] }),
+    };
