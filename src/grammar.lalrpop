@@ -42,8 +42,7 @@ StatementKind: StatementKind<'input> = {
 
 Expression: Box<Expression<'input>> = {
     #[precedence(level="1")]
-    "(" <Expression> ")",
-    <start: @L> <term: Term> <end: @R> => term.with_loc(Location(start, end)),
+    <Term>,
 
     #[precedence(level="2")]
     #[assoc(side="left")]
@@ -64,10 +63,11 @@ AddSub: Operator = {
     "-" => Operator::Sub,
 };
 
-Term: ExpressionKind<'input> = {
-    <Num>,
-    <"identifier"> => ExpressionKind::Variable(<>),
-    <!> => ExpressionKind::Error(<>),
+Term: Box<Expression<'input>> = {
+    "(" <Expression> ")",
+    <start: @L> <n: Num> <end: @R> => n.with_loc(Location(start, end)),
+    <start: @L> <ident: "identifier"> <end: @R> => ExpressionKind::Variable(ident).with_loc(Location(start, end)),
+    <start: @L> <err: !> <end: @R> => ExpressionKind::Error(err).with_loc(Location(start, end)),
 }
 
 Num: ExpressionKind<'input> =

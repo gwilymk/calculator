@@ -77,12 +77,10 @@ fn error_report(
             expected,
         } => {
             error_report = error_report.with_label(
-                Label::new(("myscript.toy", err_location.unwrap_or(start..end))).with_message(
-                    format!(
-                        "Unrecognised token, expected {expected}",
-                        expected = expected.join(", ")
-                    ),
-                ),
+                Label::new(("myscript.toy", start..end)).with_message(format!(
+                    "Unrecognised token, expected {expected}",
+                    expected = expected.join(", ")
+                )),
             );
         }
         lalrpop_util::ParseError::ExtraToken {
