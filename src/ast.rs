@@ -67,6 +67,15 @@ impl<'input> ExpressionKind<'input> {
     }
 }
 
+impl<'input> From<LexicalError> for ExpressionKind<'input> {
+    fn from(value: LexicalError) -> Self {
+        Self::Error(ErrorRecovery {
+            error: value.into(),
+            dropped_tokens: vec![],
+        })
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum Operator {
     Add,

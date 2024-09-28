@@ -3,8 +3,6 @@ use crate::{
     ast::{Expression, ExpressionKind, Statement, StatementKind, Location, Operator},
 };
 
-use lalrpop_util::{ErrorRecovery, ParseError};
-
 grammar<'input>();
 
 extern {
@@ -75,5 +73,5 @@ Term: ExpressionKind<'input> = {
 Num: ExpressionKind<'input> =
     <"int"> => match <>.parse::<i64>() {
         Ok(value) => ExpressionKind::Integer(value),
-        Err(e) => ExpressionKind::Error(ErrorRecovery { error: ParseError::from(LexicalError::from(e)).into(), dropped_tokens: vec![] }),
+        Err(e) => LexicalError::from(e).into(),
     };
