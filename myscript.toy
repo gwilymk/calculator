@@ -3,6 +3,7 @@ var b = 23 + a;
 
 print a + b;
 var x = 1287129;
+var a = -1;
 
 # a comment
 print (a - b) * x;

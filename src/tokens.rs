@@ -18,15 +18,15 @@ impl From<ParseIntError> for LexicalError {
 
 #[derive(Logos, Clone, Debug, PartialEq)]
 #[logos(skip r"[ \t\n\f]+", skip r"#.*\n?", error = LexicalError)]
-pub enum Token {
+pub enum Token<'input> {
     #[token("var")]
     KeywordVar,
     #[token("print")]
     KeywordPrint,
 
-    #[regex("[_a-zA-Z][_0-9a-zA-Z]*", |lex| lex.slice().to_string())]
-    Identifier(String),
-    #[regex("[1-9][0-9]*", |lex| lex.slice().parse())]
+    #[regex("[_a-zA-Z][_0-9a-zA-Z]*", |lex| lex.slice())]
+    Identifier(&'input str),
+    #[regex("-?[1-9][0-9]*", |lex| lex.slice().parse())]
     Integer(i64),
 
     #[token("(")]
@@ -48,7 +48,7 @@ pub enum Token {
     OperatorDiv,
 }
 
-impl fmt::Display for Token {
+impl<'input> fmt::Display for Token<'input> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{self:?}")
     }

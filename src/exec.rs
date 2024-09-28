@@ -41,16 +41,16 @@ pub fn execute(ast: Vec<Statement>) -> Result<(), ExecutionError> {
     Ok(())
 }
 
-fn exec_expression(
-    expression: &Expression,
-    variables: &HashMap<String, i64>,
+fn exec_expression<'input>(
+    expression: &Expression<'input>,
+    variables: &HashMap<&'input str, i64>,
 ) -> Result<i64, ExecutionError> {
     match expression {
         Expression::Integer(i) => Ok(*i),
         Expression::Variable(name) => variables
             .get(name)
             .copied()
-            .ok_or_else(|| ExecutionError::UnknownVariable(name.clone())),
+            .ok_or_else(|| ExecutionError::UnknownVariable(name.to_string())),
         Expression::BinaryOperation { lhs, operator, rhs } => {
             let lhs = exec_expression(lhs, variables)?;
             let rhs = exec_expression(rhs, variables)?;

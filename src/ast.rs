@@ -1,23 +1,23 @@
 #[derive(Clone, Debug, PartialEq)]
-pub enum Statement {
+pub enum Statement<'input> {
     Variable {
-        name: String,
-        value: Box<Expression>,
+        name: &'input str,
+        value: Box<Expression<'input>>,
     },
     Print {
-        value: Box<Expression>,
+        value: Box<Expression<'input>>,
     },
     Error,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Expression {
+pub enum Expression<'input> {
     Integer(i64),
-    Variable(String),
+    Variable(&'input str),
     BinaryOperation {
-        lhs: Box<Expression>,
+        lhs: Box<Expression<'input>>,
         operator: Operator,
-        rhs: Box<Expression>,
+        rhs: Box<Expression<'input>>,
     },
     Error,
 }

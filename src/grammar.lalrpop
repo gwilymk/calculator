@@ -5,16 +5,16 @@ use crate::{
 
 use lalrpop_util::ErrorRecovery;
 
-grammar<'err>(errors: &'err mut Vec<ErrorRecovery<usize, Token, LexicalError>>);
+grammar<'err, 'input>(errors: &'err mut Vec<ErrorRecovery<usize, Token<'input>, LexicalError>>);
 
 extern {
     type Location = usize;
     type Error = LexicalError;
 
-    enum Token {
+    enum Token<'input> {
         "var" => Token::KeywordVar,
         "print" => Token::KeywordPrint,
-        "identifier" => Token::Identifier(<String>),
+        "identifier" => Token::Identifier(<&'input str>),
         "int" => Token::Integer(<i64>),
         "(" => Token::LParen,
         ")" => Token::RParen,
@@ -27,17 +27,17 @@ extern {
     }
 }
 
-pub Script: Vec<ast::Statement> = {
+pub Script: Vec<ast::Statement<'input>> = {
     <Statement*>,
 }
 
-pub Statement: ast::Statement = {
+pub Statement: ast::Statement<'input> = {
     "var" <name:"identifier"> "=" <value:Expression> ";" => ast::Statement::Variable { <> },
     "print" <value:Expression> ";" => ast::Statement::Print { <> },
     <!> ";" => { errors.push(<>); ast::Statement::Error },
 }
 
-pub Expression: Box<ast::Expression> = {
+pub Expression: Box<ast::Expression<'input>> = {
     #[precedence(level="1")]
     Term,
 
@@ -62,7 +62,7 @@ AddSub: ast::Operator = {
     "-" => ast::Operator::Sub,
 };
 
-pub Term: Box<ast::Expression> = {
+pub Term: Box<ast::Expression<'input>> = {
     "int" => Box::new(ast::Expression::Integer(<>)),
     "identifier" => Box::new(ast::Expression::Variable(<>)),
     "(" <Expression> ")"
