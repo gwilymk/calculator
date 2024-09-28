@@ -27,7 +27,19 @@ fn main() {
     match ast {
         Ok(ast) => {
             if !any_errors {
-                exec::execute(ast).unwrap();
+                if let Err(e) = exec::execute(ast) {
+                    let mut error_report =
+                        ariadne::Report::build(ariadne::ReportKind::Error, "myscript.toy", 0);
+                    error_report = error_report.with_label(
+                        Label::new(("myscript.toy", e.location().as_range()))
+                            .with_message(format!("{e}")),
+                    );
+
+                    error_report
+                        .finish()
+                        .eprint(("myscript.toy", Source::from(source_code)))
+                        .unwrap();
+                }
             }
         }
         Err(ast_err) => error_report(ast_err, &source_code),
