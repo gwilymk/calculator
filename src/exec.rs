@@ -49,7 +49,7 @@ impl<'input> ExecutionError<'input> {
     }
 }
 
-pub fn execute<'input>(ast: Vec<Statement<'input>>) -> Result<(), ExecutionError<'input>> {
+pub fn execute(ast: Vec<Statement<'_>>) -> Result<(), ExecutionError<'_>> {
     let mut variables = HashMap::new();
 
     for statement in ast {
