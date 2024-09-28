@@ -29,13 +29,13 @@ pub Script: Vec<Statement<'input>> = {
     <Statement*>,
 }
 
-pub Statement: Statement<'input> = {
+Statement: Statement<'input> = {
     <start: @L> "var" <name:"identifier"> "=" <value:Expression> ";" <end: @R> => Statement { kind: StatementKind::Variable { name, value }, location: Location(start, end) },
     <start: @L> "print" <value:Expression> ";" <end: @R> => Statement { kind: StatementKind::Print { value }, location: Location(start, end) },
     <start: @L> <error: !> ";" <end: @R> => Statement { kind: StatementKind::Error(error), location: Location(start, end) },
 }
 
-pub Expression: Box<Expression<'input>> = {
+Expression: Box<Expression<'input>> = {
     #[precedence(level="1")]
     Term,
 
