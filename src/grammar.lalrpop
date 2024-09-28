@@ -29,25 +29,31 @@ pub Script: Vec<Statement<'input>> = {
     <Statement*>,
 }
 
-Statement: Statement<'input> = {
-    <start: @L> "var" <name:"identifier"> "=" <value:Expression> ";" <end: @R> => Statement { kind: StatementKind::Variable { name, value }, location: Location(start, end) },
-    <start: @L> "print" <value:Expression> ";" <end: @R> => Statement { kind: StatementKind::Print { value }, location: Location(start, end) },
-    <start: @L> <error: !> ";" <end: @R> => Statement { kind: StatementKind::Error(error), location: Location(start, end) },
+WithLoc<Rule, Output>: Output = <start: @L> <rule: Rule> <end: @R> => rule.with_loc(Location(start, end));
+
+Statement: Statement<'input> = WithLoc<StatementKind, Statement>;
+
+StatementKind: StatementKind<'input> = {
+    "var" <name:"identifier"> "=" <value:Expression> ";" => StatementKind::Variable { <> },
+    "print" <value:Expression> ";" => StatementKind::Print { <> },
+    <error: !> ";" => StatementKind::Error(<>),
 }
+
 
 Expression: Box<Expression<'input>> = {
     #[precedence(level="1")]
-    Term,
+    "(" <Expression> ")",
+    <start: @L> <term: Term> <end: @R> => term.with_loc(Location(start, end)),
 
     #[precedence(level="2")]
     #[assoc(side="left")]
-    <start: @L> <lhs: Expression> <operator: MulDiv> <rhs: Expression> <end: @R> => Box::new(Expression { kind: ExpressionKind::BinaryOperation { lhs, operator, rhs }, location: Location(start, end) }),
+    <start: @L> <lhs: Expression> <operator: MulDiv> <rhs: Expression> <end: @R> => ExpressionKind::BinaryOperation { lhs, operator, rhs }.with_loc(Location(start, end)),
 
     #[precedence(level="3")]
     #[assoc(side="left")]
-    <start: @L> <lhs: Expression> <operator: AddSub> <rhs: Expression> <end: @R> => Box::new(Expression { kind: ExpressionKind::BinaryOperation { lhs, operator, rhs }, location: Location(start, end) }),
+    <start: @L> <lhs: Expression> <operator: AddSub> <rhs: Expression> <end: @R> => ExpressionKind::BinaryOperation { lhs, operator, rhs }.with_loc(Location(start, end)),
 
-    <start: @L> <error: !> <end: @L> => Box::new(Expression { kind: ExpressionKind::Error(error), location: Location(start, end) }),
+    <start: @L> <error: !> <end: @R> => ExpressionKind::Error(error).with_loc(Location(start, end)),
 }
 
 MulDiv: Operator = {
@@ -60,8 +66,7 @@ AddSub: Operator = {
     "-" => Operator::Sub,
 };
 
-pub Term: Box<Expression<'input>> = {
-    <start: @L> <i: "int"> <end: @R> => Box::new(Expression { kind: ExpressionKind::Integer(i), location: Location(start, end) }),
-    <start: @L> <ident: "identifier"> <end: @R> => Box::new(Expression { kind: ExpressionKind::Variable(ident), location: Location(start, end) }),
-    "(" <Expression> ")"
+Term: ExpressionKind<'input> = {
+    <"int"> => ExpressionKind::Integer(<>),
+    <"identifier"> => ExpressionKind::Variable(<>),
 }

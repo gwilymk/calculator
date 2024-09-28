@@ -31,6 +31,15 @@ pub enum StatementKind<'input> {
     Error(ErrorRecovery<usize, tokens::Token<'input>, LexicalError>),
 }
 
+impl<'input> StatementKind<'input> {
+    pub fn with_loc(self, location: Location) -> Statement<'input> {
+        Statement {
+            kind: self,
+            location,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Expression<'input> {
     pub location: Location,
@@ -47,6 +56,15 @@ pub enum ExpressionKind<'input> {
         rhs: Box<Expression<'input>>,
     },
     Error(ErrorRecovery<usize, tokens::Token<'input>, LexicalError>),
+}
+
+impl<'input> ExpressionKind<'input> {
+    pub fn with_loc(self, location: Location) -> Box<Expression<'input>> {
+        Box::new(Expression {
+            kind: self,
+            location,
+        })
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
