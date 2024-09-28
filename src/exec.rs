@@ -78,7 +78,7 @@ fn exec_expression<'input>(
         ExpressionKind::Variable(name) => variables
             .get(name)
             .copied()
-            .ok_or_else(|| ExecutionError::UnknownVariable(name, expression.location)),
+            .ok_or(ExecutionError::UnknownVariable(name, expression.location)),
         ExpressionKind::BinaryOperation { lhs, operator, rhs } => {
             let lhs = exec_expression(lhs, variables)?;
             let rhs = exec_expression(rhs, variables)?;
