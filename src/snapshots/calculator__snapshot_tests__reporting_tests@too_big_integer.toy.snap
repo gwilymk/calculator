@@ -1,0 +1,12 @@
+---
+source: src/snapshot_tests.rs
+expression: "String::from_utf8(output).unwrap()"
+input_file: src/snapshot_tests/reporting/too_big_integer.toy
+---
+Error: number too large to fit in target type
+   ╭─[myscript.toy:1:1]
+   │
+ 1 │ var x = 23847294872923429847;
+   │         ──────────┬─────────  
+   │                   ╰─────────── Invalid integer
+───╯

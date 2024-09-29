@@ -82,3 +82,27 @@ pub enum Operator {
     Mul,
     Div,
 }
+
+impl<'input> Statement<'input> {
+    pub fn append_errors(&self, errors: &mut Vec<reporting::Message>) {
+        match &self.kind {
+            StatementKind::Variable { value, .. } | StatementKind::Print { value, .. } => {
+                value.append_errors(errors)
+            }
+            StatementKind::Error(message) => errors.push(message.clone()),
+        }
+    }
+}
+
+impl<'input> Expression<'input> {
+    pub fn append_errors(&self, errors: &mut Vec<reporting::Message>) {
+        match &self.kind {
+            ExpressionKind::Integer(_) | ExpressionKind::Variable(_) => {}
+            ExpressionKind::BinaryOperation { lhs, rhs, .. } => {
+                lhs.append_errors(errors);
+                rhs.append_errors(errors);
+            }
+            ExpressionKind::Error(message) => errors.push(message.clone()),
+        }
+    }
+}

@@ -1,22 +1,29 @@
-use std::io::{self, Write};
+use std::{
+    io::{self, Write},
+    ops::Range,
+};
 
-use ariadne::{Label, Report, ReportKind, Source};
+use ariadne::{Config, Label, Report, ReportKind, Source};
 
 use crate::{ast::Location, tokens::LexicalError};
 
 use super::{Message, ParseError};
 
 pub trait WriteDiagnostic {
-    fn write_diagnostic<W: Write>(&self, w: W, code: &str) -> io::Result<()>;
+    fn write_diagnostic<W: Write>(&self, w: W, code: &str, include_colour: bool) -> io::Result<()>;
+}
+
+trait BuildDiagnostic {
+    fn build_diagnostic<'a>(&self) -> ariadne::ReportBuilder<'static, (&'a str, Range<usize>)>;
 }
 
 impl WriteDiagnostic for Message {
-    fn write_diagnostic<W: Write>(&self, w: W, code: &str) -> io::Result<()> {
+    fn write_diagnostic<W: Write>(&self, w: W, code: &str, include_colour: bool) -> io::Result<()> {
         let report = match self {
             Message::LexerError(lexical_error, location) => {
-                return (lexical_error.clone(), *location).write_diagnostic(w, code)
+                (lexical_error.clone(), *location).build_diagnostic()
             }
-            Message::ParseError(parse_error) => return parse_error.write_diagnostic(w, code),
+            Message::ParseError(parse_error) => parse_error.build_diagnostic(),
             Message::UnknownVariable(variable_name, location) => {
                 Report::build(ReportKind::Error, "myscript.toy", 0)
                     .with_label(
@@ -28,14 +35,15 @@ impl WriteDiagnostic for Message {
         };
 
         report
+            .with_config(Config::default().with_color(include_colour))
             .finish()
             .write_for_stdout(("myscript.toy", Source::from(code)), w)
     }
 }
 
-impl WriteDiagnostic for ParseError {
-    fn write_diagnostic<W: Write>(&self, w: W, code: &str) -> io::Result<()> {
-        let report = match self {
+impl BuildDiagnostic for ParseError {
+    fn build_diagnostic<'a>(&self) -> ariadne::ReportBuilder<'static, (&'a str, Range<usize>)> {
+        match self {
             ParseError::UnrecognizedEof { location, expected } => {
                 Report::build(ReportKind::Error, "myscript.toy", 0)
                     .with_label(
@@ -68,19 +76,15 @@ impl WriteDiagnostic for ParseError {
                         .with_message(format!("Unexpected extra token {token}")),
                 )
             }
-        };
-
-        report
-            .finish()
-            .write_for_stdout(("myscript.toy", Source::from(code)), w)
+        }
     }
 }
 
-impl WriteDiagnostic for (Box<LexicalError>, Location) {
-    fn write_diagnostic<W: Write>(&self, w: W, code: &str) -> io::Result<()> {
+impl BuildDiagnostic for (Box<LexicalError>, Location) {
+    fn build_diagnostic<'a>(&self) -> ariadne::ReportBuilder<'static, (&'a str, Range<usize>)> {
         let (lexical_error, location) = self;
 
-        let report = match **lexical_error {
+        match **lexical_error {
             LexicalError::InvaidInteger(ref parse_int_error) => {
                 Report::build(ReportKind::Error, "myscript.toy", 0)
                     .with_label(
@@ -93,10 +97,6 @@ impl WriteDiagnostic for (Box<LexicalError>, Location) {
                 .with_label(
                     Label::new(("myscript.toy", location.as_range())).with_message("Invalid token"),
                 ),
-        };
-
-        report
-            .finish()
-            .write_for_stdout(("myscript.toy", Source::from(code)), w)
+        }
     }
 }

@@ -25,12 +25,15 @@ fn main() -> io::Result<()> {
     match ast {
         Ok(ast) => {
             if let Err(e) = exec::execute(ast) {
-                e.write_diagnostic(io::stdout().lock(), &source_code)?;
+                e.write_diagnostic(io::stdout().lock(), &source_code, true)?;
             }
         }
         Err(ast_err) => {
-            reporting::Message::from_lalrpop(ast_err, None)
-                .write_diagnostic(io::stdout().lock(), &source_code)?;
+            reporting::Message::from_lalrpop(ast_err, None).write_diagnostic(
+                io::stdout().lock(),
+                &source_code,
+                true,
+            )?;
         }
     }
 
