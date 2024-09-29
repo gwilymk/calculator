@@ -1,6 +1,7 @@
 use crate::{
     tokens::{Token, LexicalError},
     ast::{Expression, ExpressionKind, Statement, StatementKind, Location, Operator},
+    reporting::Message,
 };
 
 grammar<'input>();
@@ -36,7 +37,7 @@ Statement: Statement<'input> = WithLoc<StatementKind, Statement>;
 StatementKind: StatementKind<'input> = {
     "var" <name:"identifier"> "=" <value:Expression> ";" => StatementKind::Variable { <> },
     "print" <value:Expression> ";" => StatementKind::Print { <> },
-    <error: !> ";" => StatementKind::Error(<>),
+    <start: @L> <error: !> <end: @R> ";" => StatementKind::Error(Message::from_lalrpop(error.error, Some(Location(start, end)))),
 }
 
 
@@ -67,11 +68,11 @@ Term: Box<Expression<'input>> = {
     "(" <Expression> ")",
     <start: @L> <n: Num> <end: @R> => n.with_loc(Location(start, end)),
     <start: @L> <ident: "identifier"> <end: @R> => ExpressionKind::Variable(ident).with_loc(Location(start, end)),
-    <start: @L> <err: !> <end: @R> => ExpressionKind::Error(err).with_loc(Location(start, end)),
+    <start: @L> <err: !> <end: @R> => ExpressionKind::Error(Message::from_lalrpop(err.error, Some(Location(start, end)))).with_loc(Location(start, end)),
 }
 
 Num: ExpressionKind<'input> =
-    <"int"> => match <>.parse::<i64>() {
+    <start: @L> <value: "int"> <end: @R> => match value.parse::<i64>() {
         Ok(value) => ExpressionKind::Integer(value),
-        Err(e) => LexicalError::from(e).into(),
+        Err(e) => ExpressionKind::Error(Message::lexer_error(LexicalError::from(e).into(), Location(start, end))),
     };

@@ -10,7 +10,7 @@ input_file: src/snapshot_tests/parser/number_very_big.toy
       name: "z",
       value: Expression(
         location: Location(8, 44),
-        kind: Error(Some(InvaidInteger)),
+        kind: Error(LexerError(InvaidInteger, Location(8, 44))),
       ),
     ),
   ),
