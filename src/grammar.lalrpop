@@ -74,5 +74,5 @@ Term: Box<Expression<'input>> = {
 Num: ExpressionKind<'input> =
     <start: @L> <value: "int"> <end: @R> => match value.parse::<i64>() {
         Ok(value) => ExpressionKind::Integer(value),
-        Err(e) => ExpressionKind::Error(Message::lexer_error(LexicalError::from(e).into(), Location(start, end))),
+        Err(e) => ExpressionKind::Error(Message::lexer_error(LexicalError::from(e), Location(start, end))),
     };
