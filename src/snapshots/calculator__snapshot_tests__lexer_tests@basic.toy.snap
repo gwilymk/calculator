@@ -1,0 +1,42 @@
+---
+source: src/snapshot_tests.rs
+expression: output
+input_file: test_inputs/lexer/basic.toy
+---
+[
+  Ok(KeywordVar),
+  Ok(Identifier("x")),
+  Ok(Assign),
+  Ok(Integer("0")),
+  Ok(Semicolon),
+  Ok(KeywordVar),
+  Ok(Identifier("y")),
+  Ok(Assign),
+  Ok(Integer("291")),
+  Ok(Semicolon),
+  Ok(KeywordVar),
+  Ok(Identifier("z")),
+  Ok(Assign),
+  Ok(LParen),
+  Ok(Identifier("x")),
+  Ok(OperatorAdd),
+  Ok(Integer("3")),
+  Ok(RParen),
+  Ok(OperatorMul),
+  Ok(Integer("38299")),
+  Ok(Semicolon),
+  Ok(KeywordVar),
+  Ok(Identifier("negative")),
+  Ok(Assign),
+  Ok(Integer("-3")),
+  Ok(Semicolon),
+  Ok(KeywordPrint),
+  Ok(LParen),
+  Ok(Identifier("x")),
+  Ok(OperatorDiv),
+  Ok(Identifier("y")),
+  Ok(RParen),
+  Ok(OperatorSub),
+  Ok(Identifier("z")),
+  Ok(Semicolon),
+]

@@ -1,0 +1,12 @@
+---
+source: src/snapshot_tests.rs
+expression: output
+input_file: test_inputs/lexer/number_very_big.toy
+---
+[
+  Ok(KeywordVar),
+  Ok(Identifier("z")),
+  Ok(Assign),
+  Ok(Integer("239487239472491034192834701293847120")),
+  Ok(Semicolon),
+]

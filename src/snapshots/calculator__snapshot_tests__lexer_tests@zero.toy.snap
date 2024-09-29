@@ -1,0 +1,12 @@
+---
+source: src/snapshot_tests.rs
+expression: output
+input_file: test_inputs/lexer/zero.toy
+---
+[
+  Ok(KeywordVar),
+  Ok(Identifier("y")),
+  Ok(Assign),
+  Ok(Integer("0")),
+  Ok(Semicolon),
+]

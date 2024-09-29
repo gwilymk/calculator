@@ -2,6 +2,7 @@ use std::fmt;
 use std::num::ParseIntError;
 
 use logos::Logos;
+use serde::Serialize;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub enum LexicalError {
@@ -16,7 +17,7 @@ impl From<ParseIntError> for LexicalError {
     }
 }
 
-#[derive(Logos, Clone, Debug, PartialEq)]
+#[derive(Logos, Clone, Debug, PartialEq, Serialize)]
 #[logos(skip r"[ \t\n\f]+", skip r"#.*\n?", error = LexicalError)]
 pub enum Token<'input> {
     #[token("var")]
@@ -26,7 +27,7 @@ pub enum Token<'input> {
 
     #[regex("[_a-zA-Z][_0-9a-zA-Z]*", |lex| lex.slice())]
     Identifier(&'input str),
-    #[regex("-?[1-9][0-9]*", |lex| lex.slice())]
+    #[regex("-?[0-9]+", |lex| lex.slice())]
     Integer(&'input str),
 
     #[token("(")]

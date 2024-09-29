@@ -1,0 +1,12 @@
+---
+source: src/snapshot_tests.rs
+expression: output
+input_file: test_inputs/lexer/negative_number.toy
+---
+[
+  Ok(KeywordVar),
+  Ok(Identifier("x")),
+  Ok(Assign),
+  Ok(Integer("-1280")),
+  Ok(Semicolon),
+]

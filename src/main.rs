@@ -9,6 +9,9 @@ mod exec;
 mod lexer;
 mod tokens;
 
+#[cfg(test)]
+mod snapshot_tests;
+
 lalrpop_mod!(pub grammar);
 
 fn main() {

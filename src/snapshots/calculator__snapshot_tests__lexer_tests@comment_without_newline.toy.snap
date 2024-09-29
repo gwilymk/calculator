@@ -1,0 +1,12 @@
+---
+source: src/snapshot_tests.rs
+expression: output
+input_file: test_inputs/lexer/comment_without_newline.toy
+---
+[
+  Ok(KeywordVar),
+  Ok(Identifier("x")),
+  Ok(Assign),
+  Ok(Integer("3")),
+  Ok(Semicolon),
+]

@@ -10,3 +10,11 @@ lalrpop = "0.21.0"
 ariadne = { version = "0.4.1", features = ["auto-color"] }
 lalrpop-util = { version = "0.21.0", features = ["lexer", "unicode"] }
 logos = "0.14"
+serde = { version = "1.0.210", features = ["derive"] }
+
+[dev-dependencies]
+insta = { version = "1.40.0", features = ["ron", "glob"] }
+
+[profile.dev.package]
+insta.opt-level = 3
+similar.opt-level = 3
