@@ -4,6 +4,8 @@ use std::num::ParseIntError;
 use logos::Logos;
 use serde::Serialize;
 
+// In future, LexicalError can contain the location since we do actually know it
+// which would save a bit of the annoying stuff in Message
 #[derive(Default, Debug, Clone, PartialEq, Serialize)]
 pub enum LexicalError {
     InvaidInteger(#[serde(skip)] ParseIntError),
