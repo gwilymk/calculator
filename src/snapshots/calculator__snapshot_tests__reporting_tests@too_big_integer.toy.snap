@@ -9,4 +9,6 @@ Error: number too large to fit in target type
  1 │ var x = 23847294872923429847;
    │         ──────────┬─────────  
    │                   ╰─────────── Invalid integer
+   │ 
+   │ Note: Larger than maximum positive number which is 9223372036854775807
 ───╯

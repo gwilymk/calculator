@@ -92,6 +92,15 @@ impl BuildDiagnostic for (Box<LexicalError>, Location) {
                             .with_message("Invalid integer"),
                     )
                     .with_message(format!("{parse_int_error}"))
+                    .with_note(match parse_int_error.kind() {
+                        std::num::IntErrorKind::PosOverflow => {
+                            format!("Larger than maximum positive number which is {}", i64::MAX)
+                        }
+                        std::num::IntErrorKind::NegOverflow => {
+                            format!("Smaller than minimum negative number which is {}", i64::MIN)
+                        }
+                        _ => String::default(),
+                    })
             }
             LexicalError::InvalidToken => Report::build(ReportKind::Error, "myscript.toy", 0)
                 .with_label(

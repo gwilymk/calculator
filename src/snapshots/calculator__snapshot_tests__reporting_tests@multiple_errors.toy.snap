@@ -16,4 +16,6 @@ Error: number too large to fit in target type
  3 │ var y = 23842342472947239472349;
    │         ───────────┬───────────  
    │                    ╰───────────── Invalid integer
+   │ 
+   │ Note: Larger than maximum positive number which is 9223372036854775807
 ───╯
