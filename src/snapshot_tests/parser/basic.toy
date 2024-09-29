@@ -1,0 +1,8 @@
+var x = 0;
+var y = 291;
+var z = (x + 3) * 38299;
+var negative = -3;
+
+# this is a comment :), which has some special characters in it
+
+print (x / y) - z;

@@ -1,0 +1,96 @@
+---
+source: src/snapshot_tests.rs
+expression: output
+input_file: src/snapshot_tests/parser/basic.toy
+---
+[
+  Statement(
+    location: Location(0, 10),
+    kind: Variable(
+      name: "x",
+      value: Expression(
+        location: Location(8, 9),
+        kind: Integer(0),
+      ),
+    ),
+  ),
+  Statement(
+    location: Location(11, 23),
+    kind: Variable(
+      name: "y",
+      value: Expression(
+        location: Location(19, 22),
+        kind: Integer(291),
+      ),
+    ),
+  ),
+  Statement(
+    location: Location(24, 48),
+    kind: Variable(
+      name: "z",
+      value: Expression(
+        location: Location(32, 47),
+        kind: BinaryOperation(
+          lhs: Expression(
+            location: Location(33, 38),
+            kind: BinaryOperation(
+              lhs: Expression(
+                location: Location(33, 34),
+                kind: Variable("x"),
+              ),
+              operator: Add,
+              rhs: Expression(
+                location: Location(37, 38),
+                kind: Integer(3),
+              ),
+            ),
+          ),
+          operator: Mul,
+          rhs: Expression(
+            location: Location(42, 47),
+            kind: Integer(38299),
+          ),
+        ),
+      ),
+    ),
+  ),
+  Statement(
+    location: Location(49, 67),
+    kind: Variable(
+      name: "negative",
+      value: Expression(
+        location: Location(64, 66),
+        kind: Integer(-3),
+      ),
+    ),
+  ),
+  Statement(
+    location: Location(134, 152),
+    kind: Print(
+      value: Expression(
+        location: Location(140, 151),
+        kind: BinaryOperation(
+          lhs: Expression(
+            location: Location(141, 146),
+            kind: BinaryOperation(
+              lhs: Expression(
+                location: Location(141, 142),
+                kind: Variable("x"),
+              ),
+              operator: Div,
+              rhs: Expression(
+                location: Location(145, 146),
+                kind: Variable("y"),
+              ),
+            ),
+          ),
+          operator: Sub,
+          rhs: Expression(
+            location: Location(150, 151),
+            kind: Variable("z"),
+          ),
+        ),
+      ),
+    ),
+  ),
+]

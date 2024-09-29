@@ -4,9 +4,9 @@ use std::num::ParseIntError;
 use logos::Logos;
 use serde::Serialize;
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize)]
 pub enum LexicalError {
-    InvaidInteger(ParseIntError),
+    InvaidInteger(#[serde(skip)] ParseIntError),
     #[default]
     InvalidToken,
 }

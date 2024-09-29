@@ -1,0 +1,17 @@
+---
+source: src/snapshot_tests.rs
+expression: output
+input_file: src/snapshot_tests/parser/number_very_big.toy
+---
+[
+  Statement(
+    location: Location(0, 45),
+    kind: Variable(
+      name: "z",
+      value: Expression(
+        location: Location(8, 44),
+        kind: Error(Some(InvaidInteger)),
+      ),
+    ),
+  ),
+]
